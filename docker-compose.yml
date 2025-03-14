@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  pr-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./.env:/app/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["version"]
+    # Uncomment to run a review
+    # command: ["review", "--repo", "owner/repo", "--pr", "123", "--comment"] 

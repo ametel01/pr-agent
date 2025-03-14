@@ -1,0 +1,24 @@
+# Core dependencies
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+requests>=2.31.0
+
+# GitHub Integration
+PyGithub>=2.1.1
+
+# AI and ML
+transformers>=4.35.0
+torch>=2.0.0
+langchain>=0.0.267
+langchain-openai>=0.0.2
+
+# Vector Database
+faiss-cpu>=1.7.4
+chromadb>=0.4.18
+
+# Utilities
+tqdm>=4.66.1
+pytest>=7.4.0
+black>=23.7.0
+isort>=5.12.0
+mypy>=1.5.1 
