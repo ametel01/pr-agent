@@ -11,7 +11,7 @@ from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import StrOutputParser
 
-from pr_agent.models.base import BaseModel
+from src.models.base import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ Format your response as a JSON object with the following structure:
 """
 
 DIFF_ANALYSIS_PROMPT = """
-You are an expert code reviewer. Analyze the following diff and provide feedback.
+You are an expert code reviewer. Analyze the following diff and provide detailed, specific feedback on the code changes.
 
 File: {filename}
 
@@ -55,12 +55,32 @@ File: {filename}
 {diff}
 ```
 
-Provide a detailed analysis including:
-1. Code quality issues in the changes
-2. Potential bugs or edge cases introduced
-3. Performance impacts
-4. Security concerns
-5. Suggestions for improvement
+Carefully examine the changes (lines starting with + and -) and provide a thorough analysis including:
+
+1. Code quality issues in the changes:
+   - Identify specific code smells, anti-patterns, or violations of best practices
+   - Point out any readability or maintainability concerns
+   - Highlight any naming, formatting, or structural issues
+
+2. Potential bugs or edge cases introduced:
+   - Look for logical errors, off-by-one errors, or incorrect assumptions
+   - Identify missing error handling or validation
+   - Consider edge cases that might not be handled properly
+
+3. Performance impacts:
+   - Analyze algorithmic complexity and efficiency
+   - Identify potential bottlenecks or resource-intensive operations
+   - Suggest optimizations where appropriate
+
+4. Security concerns:
+   - Look for potential vulnerabilities (injection, authentication issues, etc.)
+   - Identify any sensitive data exposure risks
+   - Check for proper input validation and sanitization
+
+5. Suggestions for improvement:
+   - Provide specific, actionable recommendations for each issue
+   - Suggest alternative approaches or design patterns when appropriate
+   - Include code examples where helpful
 
 Format your response as a JSON object with the following structure:
 {
@@ -69,16 +89,18 @@ Format your response as a JSON object with the following structure:
       "type": "bug|security|performance|style|other",
       "severity": "high|medium|low",
       "description": "Detailed description of the issue",
-      "suggestion": "Suggested fix or improvement",
+      "suggestion": "Specific, actionable suggestion for improvement",
       "line": "Line number or range if applicable"
     }
   ],
-  "summary": "Overall assessment of the changes"
+  "summary": "Comprehensive assessment of the changes that captures the key points and overall quality"
 }
+
+Be thorough and specific in your analysis. Focus on the actual code changes in the diff, not just the surrounding context.
 """
 
 REVIEW_SUMMARY_PROMPT = """
-You are an expert code reviewer. Summarize the following file reviews into an overall pull request review.
+You are an expert code reviewer. Summarize the following file reviews into a comprehensive, detailed pull request review.
 
 Pull Request Description:
 {pr_description}
@@ -86,14 +108,40 @@ Pull Request Description:
 File Reviews:
 {file_reviews}
 
-Provide a comprehensive summary of the review, including:
-1. Overall assessment of the changes
-2. Major issues that need to be addressed
-3. Minor issues that could be improved
-4. Positive aspects of the changes
-5. Suggestions for future improvements
+Provide a thorough, actionable summary of the review, including:
 
-Your summary should be constructive, specific, and actionable.
+1. Overall assessment of the code changes:
+   - Evaluate the quality, correctness, and maintainability of the changes
+   - Assess whether the changes achieve their intended purpose
+   - Consider the impact on the codebase as a whole
+
+2. Major issues that need to be addressed:
+   - Highlight critical bugs, security vulnerabilities, or design flaws
+   - Explain the potential impact of each major issue
+   - Prioritize issues based on severity and impact
+
+3. Minor issues that could be improved:
+   - Identify code style inconsistencies, minor optimizations, or documentation gaps
+   - Suggest specific improvements for each minor issue
+   - Explain the benefits of addressing these issues
+
+4. Positive aspects of the changes:
+   - Recognize well-implemented features or improvements
+   - Highlight good coding practices or clever solutions
+   - Acknowledge any performance optimizations or security enhancements
+
+5. Suggestions for future improvements:
+   - Recommend specific, actionable next steps
+   - Suggest alternative approaches or design patterns where appropriate
+   - Provide guidance on testing, documentation, or maintenance
+
+Your summary should be:
+- Constructive and respectful
+- Specific and actionable
+- Balanced between positive feedback and areas for improvement
+- Focused on the actual code changes, not just process or documentation
+
+If the file reviews are empty or contain no substantive analysis, focus on what information is available and recommend that a more detailed code review be conducted.
 """
 
 

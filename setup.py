@@ -15,7 +15,8 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ametel01/pr-agent/",
-    packages=find_packages(),
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.11",
@@ -26,7 +27,7 @@ setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "pr-agent=pr_agent.cli:main",
+            "pr-agent=src.cli:main",
         ],
     },
 ) 

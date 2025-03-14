@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from pr_agent.github.webhook import app, verify_signature
+from src.github.webhook import app, verify_signature
 
 
 class TestWebhook(unittest.TestCase):
@@ -26,6 +26,9 @@ class TestWebhook(unittest.TestCase):
             "OPENAI_API_KEY": "fake-key"
         })
         self.env_patcher.start()
+        
+        # Ensure the environment variables are applied
+        os.environ["GITHUB_WEBHOOK_SECRET"] = "test-secret"
         
         # Create test client
         self.client = TestClient(app)
@@ -68,15 +71,18 @@ class TestWebhook(unittest.TestCase):
         # Verify
         self.assertFalse(verify_signature(payload, signature, secret))
     
-    @patch("pr_agent.github.webhook.process_pull_request")
+    @patch("src.github.webhook.process_pull_request")
     def test_webhook_ping(self, mock_process_pr):
         """Test webhook ping event."""
         # Create payload
         payload = {"zen": "Test ping"}
         
+        # Convert payload to JSON string and then to bytes
+        payload_str = json.dumps(payload)
+        payload_bytes = payload_str.encode()
+        
         # Create signature
         secret = "test-secret"
-        payload_bytes = json.dumps(payload).encode()
         hmac_obj = hmac.new(
             key=secret.encode(),
             msg=payload_bytes,
@@ -84,13 +90,14 @@ class TestWebhook(unittest.TestCase):
         )
         signature = f"sha256={hmac_obj.hexdigest()}"
         
-        # Send request
+        # Send request with raw content
         response = self.client.post(
             "/webhook",
-            json=payload,
+            content=payload_bytes,
             headers={
                 "X-GitHub-Event": "ping",
-                "X-Hub-Signature-256": signature
+                "X-Hub-Signature-256": signature,
+                "Content-Type": "application/json"
             }
         )
         
@@ -99,7 +106,7 @@ class TestWebhook(unittest.TestCase):
         self.assertEqual(response.json(), {"message": "Pong!"})
         mock_process_pr.assert_not_called()
     
-    @patch("pr_agent.github.webhook.process_pull_request")
+    @patch("src.github.webhook.process_pull_request")
     def test_webhook_pull_request(self, mock_process_pr):
         """Test webhook pull request event."""
         # Create payload
@@ -109,9 +116,12 @@ class TestWebhook(unittest.TestCase):
             "pull_request": {"number": 123}
         }
         
+        # Convert payload to JSON string and then to bytes
+        payload_str = json.dumps(payload)
+        payload_bytes = payload_str.encode()
+        
         # Create signature
         secret = "test-secret"
-        payload_bytes = json.dumps(payload).encode()
         hmac_obj = hmac.new(
             key=secret.encode(),
             msg=payload_bytes,
@@ -119,13 +129,14 @@ class TestWebhook(unittest.TestCase):
         )
         signature = f"sha256={hmac_obj.hexdigest()}"
         
-        # Send request
+        # Send request with raw content
         response = self.client.post(
             "/webhook",
-            json=payload,
+            content=payload_bytes,
             headers={
                 "X-GitHub-Event": "pull_request",
-                "X-Hub-Signature-256": signature
+                "X-Hub-Signature-256": signature,
+                "Content-Type": "application/json"
             }
         )
         
@@ -142,13 +153,18 @@ class TestWebhook(unittest.TestCase):
         # Create payload
         payload = {"test": "data"}
         
+        # Convert payload to JSON string and then to bytes
+        payload_str = json.dumps(payload)
+        payload_bytes = payload_str.encode()
+        
         # Send request with invalid signature
         response = self.client.post(
             "/webhook",
-            json=payload,
+            content=payload_bytes,
             headers={
                 "X-GitHub-Event": "ping",
-                "X-Hub-Signature-256": "sha256=invalid"
+                "X-Hub-Signature-256": "sha256=invalid",
+                "Content-Type": "application/json"
             }
         )
         
@@ -161,9 +177,12 @@ class TestWebhook(unittest.TestCase):
         # Create payload
         payload = {"test": "data"}
         
+        # Convert payload to JSON string and then to bytes
+        payload_str = json.dumps(payload)
+        payload_bytes = payload_str.encode()
+        
         # Create signature
         secret = "test-secret"
-        payload_bytes = json.dumps(payload).encode()
         hmac_obj = hmac.new(
             key=secret.encode(),
             msg=payload_bytes,
@@ -174,9 +193,10 @@ class TestWebhook(unittest.TestCase):
         # Send request without event type
         response = self.client.post(
             "/webhook",
-            json=payload,
+            content=payload_bytes,
             headers={
-                "X-Hub-Signature-256": signature
+                "X-Hub-Signature-256": signature,
+                "Content-Type": "application/json"
             }
         )
         

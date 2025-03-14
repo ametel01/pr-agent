@@ -13,9 +13,9 @@ from typing import List, Optional
 
 from dotenv import load_dotenv
 
-from pr_agent.core.reviewer import PRReviewer
-from pr_agent.github.client import GitHubClient
-from pr_agent.models.openai_model import OpenAIModel
+from src.core.reviewer import PRReviewer
+from src.github.client import GitHubClient
+from src.models.openai_model import OpenAIModel
 
 # Load environment variables from .env file
 load_dotenv()
@@ -146,7 +146,7 @@ def start_webhook(args: argparse.Namespace) -> int:
         return 1
     
     try:
-        from pr_agent.github.webhook import start_webhook_server
+        from src.github.webhook import start_webhook_server
         
         # Start the webhook server
         start_webhook_server(
@@ -213,7 +213,7 @@ def main(args: Optional[List[str]] = None) -> int:
     elif parsed_args.command == "setup":
         return setup_config(parsed_args)
     elif parsed_args.command == "version":
-        from pr_agent import __version__
+        from src import __version__
         print(f"PR Agent version {__version__}")
         return 0
     else:

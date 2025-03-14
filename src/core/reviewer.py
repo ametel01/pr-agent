@@ -7,9 +7,9 @@ import logging
 import os
 from typing import Dict, List, Optional, Tuple, Union
 
-from pr_agent.github.client import GitHubClient
-from pr_agent.models.base import BaseModel
-from pr_agent.models.openai_model import OpenAIModel
+from src.github.client import GitHubClient
+from src.models.base import BaseModel
+from src.models.openai_model import OpenAIModel
 
 logger = logging.getLogger(__name__)
 

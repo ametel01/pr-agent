@@ -13,8 +13,8 @@ from typing import Any, Dict, Optional, Union
 from fastapi import FastAPI, HTTPException, Request, Response, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
-from pr_agent.core.reviewer import PRReviewer
-from pr_agent.github.client import GitHubClient
+from src.core.reviewer import PRReviewer
+from src.github.client import GitHubClient
 
 logger = logging.getLogger(__name__)
 
@@ -80,14 +80,21 @@ async def process_pull_request(
     
     # Initialize components
     github_client = GitHubClient()
-    reviewer = PRReviewer(github_client=github_client)
+    
+    # Ensure we're posting detailed comments
+    reviewer = PRReviewer(
+        github_client=github_client,
+        max_files=int(os.getenv("MAX_PR_FILES", "10")),
+        comment_prefix=os.getenv("REVIEW_COMMENT_PREFIX", "[PR-Agent]")
+    )
     
     try:
-        # Review the PR
+        # Review the PR with detailed comments
+        logger.info(f"Starting detailed review of PR #{pr_number} in {repo_name}")
         await reviewer.review_pr(
             repo_name=repo_name,
             pr_number=pr_number,
-            post_comments=post_comments
+            post_comments=True  # Always post comments for detailed feedback
         )
         logger.info(f"Successfully reviewed PR #{pr_number} in {repo_name}")
     except Exception as e:

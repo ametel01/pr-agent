@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 from github import Github, GithubException
 
-from pr_agent.github.client import GitHubClient
+from src.github.client import GitHubClient
 
 
 class TestGitHubClient(unittest.TestCase):
@@ -24,21 +24,21 @@ class TestGitHubClient(unittest.TestCase):
         """Tear down test fixtures."""
         self.env_patcher.stop()
     
-    @patch("pr_agent.github.client.Github")
+    @patch("src.github.client.Github")
     def test_init_with_token(self, mock_github):
         """Test initialization with token."""
         client = GitHubClient(token="test-token")
         self.assertEqual(client.token, "test-token")
         mock_github.assert_called_once_with("test-token")
     
-    @patch("pr_agent.github.client.Github")
+    @patch("src.github.client.Github")
     def test_init_with_env_token(self, mock_github):
         """Test initialization with token from environment."""
         client = GitHubClient()
         self.assertEqual(client.token, "fake-token")
         mock_github.assert_called_once_with("fake-token")
     
-    @patch("pr_agent.github.client.Github")
+    @patch("src.github.client.Github")
     def test_init_no_token(self, mock_github):
         """Test initialization with no token."""
         self.env_patcher.stop()
@@ -47,7 +47,7 @@ class TestGitHubClient(unittest.TestCase):
         mock_github.assert_not_called()
         self.env_patcher.start()
     
-    @patch("pr_agent.github.client.Github")
+    @patch("src.github.client.Github")
     def test_get_repository(self, mock_github):
         """Test getting a repository."""
         # Setup
@@ -62,7 +62,7 @@ class TestGitHubClient(unittest.TestCase):
         self.assertEqual(repo, mock_repo)
         mock_github.return_value.get_repo.assert_called_once_with("owner/repo")
     
-    @patch("pr_agent.github.client.Github")
+    @patch("src.github.client.Github")
     def test_get_repository_error(self, mock_github):
         """Test getting a repository with error."""
         # Setup
@@ -75,7 +75,7 @@ class TestGitHubClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             client.get_repository("owner/repo")
     
-    @patch("pr_agent.github.client.Github")
+    @patch("src.github.client.Github")
     def test_get_pull_request(self, mock_github):
         """Test getting a pull request."""
         # Setup
@@ -93,7 +93,7 @@ class TestGitHubClient(unittest.TestCase):
         mock_github.return_value.get_repo.assert_called_once_with("owner/repo")
         mock_repo.get_pull.assert_called_once_with(123)
     
-    @patch("pr_agent.github.client.Github")
+    @patch("src.github.client.Github")
     def test_get_pr_files(self, mock_github):
         """Test getting files from a pull request."""
         # Setup
