@@ -9,20 +9,20 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 setup(
     name="pr_agent",
     version="0.1.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Alex Metelli",
+    author_email="alex-metelli@gmx.com",
     description="AI-powered code review assistant for GitHub Pull Requests",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/pr-agent",
+    url="https://github.com/ametel01/pr-agent/",
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.11",
     install_requires=requirements,
     entry_points={
         "console_scripts": [

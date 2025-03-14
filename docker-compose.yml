@@ -11,4 +11,17 @@ services:
       - PYTHONUNBUFFERED=1
     command: ["version"]
     # Uncomment to run a review
-    # command: ["review", "--repo", "owner/repo", "--pr", "123", "--comment"] 
+    # command: ["review", "--repo", "owner/repo", "--pr", "123", "--comment"]
+  
+  webhook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.env:/app/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["webhook", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]
+    restart: unless-stopped 

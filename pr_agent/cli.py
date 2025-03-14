@@ -57,6 +57,20 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         "--max-files", type=int, help="Maximum number of files to review"
     )
     
+    # Webhook command
+    webhook_parser = subparsers.add_parser("webhook", help="Start the webhook server")
+    webhook_parser.add_argument(
+        "--host", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)"
+    )
+    webhook_parser.add_argument(
+        "--port", type=int, default=8000, help="Port to bind to (default: 8000)"
+    )
+    webhook_parser.add_argument(
+        "--log-level", default="info", 
+        choices=["debug", "info", "warning", "error", "critical"],
+        help="Logging level (default: info)"
+    )
+    
     # Setup command
     setup_parser = subparsers.add_parser("setup", help="Setup PR Agent configuration")
     setup_parser.add_argument(
@@ -64,6 +78,9 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     )
     setup_parser.add_argument(
         "--openai-key", help="OpenAI API key"
+    )
+    setup_parser.add_argument(
+        "--webhook-secret", help="GitHub webhook secret"
     )
     
     # Version command
@@ -117,6 +134,39 @@ async def review_pr(args: argparse.Namespace) -> int:
         return 1
 
 
+def start_webhook(args: argparse.Namespace) -> int:
+    """Start the webhook server."""
+    logger.info(f"Starting webhook server on {args.host}:{args.port}")
+    
+    # Check if webhook secret is configured
+    if not os.getenv("GITHUB_WEBHOOK_SECRET"):
+        logger.error("GITHUB_WEBHOOK_SECRET not set in environment")
+        print("Error: GITHUB_WEBHOOK_SECRET not set in environment")
+        print("Please run 'pr-agent setup --webhook-secret YOUR_SECRET' to configure")
+        return 1
+    
+    try:
+        from pr_agent.github.webhook import start_webhook_server
+        
+        # Start the webhook server
+        start_webhook_server(
+            host=args.host,
+            port=args.port,
+            log_level=args.log_level
+        )
+        
+        return 0
+    except ImportError as e:
+        logger.error(f"Error importing webhook module: {e}")
+        print("Error: Could not import webhook module. Make sure FastAPI and Uvicorn are installed.")
+        print("Run 'pip install fastapi uvicorn' to install the required dependencies.")
+        return 1
+    except Exception as e:
+        logger.error(f"Error starting webhook server: {e}", exc_info=True)
+        print(f"Error: {e}")
+        return 1
+
+
 def setup_config(args: argparse.Namespace) -> int:
     """Setup PR Agent configuration."""
     logger.info("Setting up PR Agent configuration")
@@ -140,6 +190,9 @@ def setup_config(args: argparse.Namespace) -> int:
     if args.openai_key:
         env_vars["OPENAI_API_KEY"] = args.openai_key
     
+    if args.webhook_secret:
+        env_vars["GITHUB_WEBHOOK_SECRET"] = args.webhook_secret
+    
     # Write back to .env
     with open(env_file, "w") as f:
         for key, value in env_vars.items():
@@ -155,6 +208,8 @@ def main(args: Optional[List[str]] = None) -> int:
     
     if parsed_args.command == "review":
         return asyncio.run(review_pr(parsed_args))
+    elif parsed_args.command == "webhook":
+        return start_webhook(parsed_args)
     elif parsed_args.command == "setup":
         return setup_config(parsed_args)
     elif parsed_args.command == "version":
